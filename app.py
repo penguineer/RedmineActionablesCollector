@@ -10,12 +10,16 @@ import tornado.httpclient
 import os
 import signal
 import subprocess
+from datetime import datetime
+import isodate
 
 import json
-from datetime import datetime
 from urllib.parse import urlparse, urlunparse
 
 from redminelib import Redmine, exceptions as redmine_exceptions
+
+
+startup_timestamp = datetime.now()
 
 
 class HealthHandler(tornado.web.RequestHandler, ABC):
@@ -26,21 +30,32 @@ class HealthHandler(tornado.web.RequestHandler, ABC):
     @staticmethod
     def _load_git_version():
         v = None
-        try:
-            v = subprocess.check_output(["git", "describe", "--always", "--dirty"],
-                                        cwd=os.path.dirname(__file__)).strip().decode()
-        except subprocess.CalledProcessError as e:
-            print("Checking git version lead to non-null return code ", e.returncode)
+
+        # try file git-version.txt first
+        gitversion_file = "git-version.txt"
+        if os.path.exists(gitversion_file):
+            with open(gitversion_file) as f:
+                v = f.readline().strip()
+
+        # if not available, try git
+        if v is None:
+            try:
+                v = subprocess.check_output(["git", "describe", "--always", "--dirty"],
+                                            cwd=os.path.dirname(__file__)).strip().decode()
+            except subprocess.CalledProcessError as e:
+                print("Checking git version lead to non-null return code ", e.returncode)
 
         return v
 
     def get(self):
         health = dict()
-        health['status'] = 'healthy'
         health['api_version'] = 'v0'
 
         if self.git_version is not None:
             health['git_version'] = self.git_version
+
+        health['timestamp'] = isodate.datetime_isoformat(datetime.now())
+        health['uptime'] = isodate.duration_isoformat(datetime.now() - startup_timestamp)
 
         self.set_header("Content-Type", "application/json")
         self.write(json.dumps(health, indent=4))
@@ -49,7 +64,7 @@ class HealthHandler(tornado.web.RequestHandler, ABC):
 
 class Oas3Handler(tornado.web.RequestHandler, ABC):
     def get(self):
-        with open('api.yaml', 'r') as f:
+        with open('OAS3.yml', 'r') as f:
             oas3 = f.read()
             self.write(oas3)
         self.finish()
@@ -188,7 +203,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 def make_app():
     version_path = r"/v[0-9]"
     return tornado.web.Application([
-        (version_path, HealthHandler),
+        (version_path + r"/health", HealthHandler),
         (version_path + r"/oas3", Oas3Handler),
         (version_path + r"/redmine/actionables", RedmineActionablesHandler)
     ])
