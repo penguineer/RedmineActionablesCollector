@@ -1,0 +1,2 @@
+tornado==6.0.3
+python-redmine==2.2.1
