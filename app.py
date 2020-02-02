@@ -109,6 +109,9 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             issue_all = dict()
             # Map of user issues
             issue_user = dict()
+            # Map of blocked issues
+            # Contains a list of blocking issues
+            issue_rel_blockedby = dict()
 
             # Start with all issues which are still open, the rest is not relevant
             rm_issues = redmine.issue.filter(
@@ -132,11 +135,19 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                 for rm_rel in rm_issue.relations:
                     if rm_rel.relation_type == 'blocks':
                         if rm_rel.issue_id in issue_all.keys():
-                            issue_user[rm_rel.issue_to_id] = None
+                            if rm_rel.issue_to_id not in issue_rel_blockedby:
+                                issue_rel_blockedby[rm_rel.issue_to_id] = list()
+                            issue_rel_blockedby[rm_rel.issue_to_id].append(rm_issue.id)
+
+                            # issue_user[rm_rel.issue_to_id] = None
 
                     if rm_rel.relation_type == 'blocked_by':
                         if rm_rel.issue_to_id in issue_all.keys():
-                            issue_user[rm_rel.issue_id] = None
+                            if rm_issue.id not in issue_rel_blockedby:
+                                issue_rel_blockedby[rm_issue.id] = list()
+                            issue_rel_blockedby[rm_issue.id].append(rm_rel.issue_to_id)
+
+                            # issue_user[rm_rel.issue_id] = None
 
                     if rm_rel.relation_type == 'precedes':
                         if rm_rel.issue_id in issue_all.keys():
@@ -235,8 +246,14 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     if 'project' in dir(issue) and issue.project is not None:
                         entry['project_local_id'] = issue.project.id
 
+                    if issue.id in issue_rel_blockedby:
+                        entry['blocked_by'] = issue_rel_blockedby[issue.id]
+
                     issues.append(entry)
             result['issues'] = issues
+
+            # Add list of blocked issues
+            result['blocked'] = list(issue_rel_blockedby.keys())
 
             self.add_header("Content-Type", "application/json")
             self.write(json.dumps(result, indent=4))
