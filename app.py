@@ -222,6 +222,13 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                         if key in dir(issue):
                             entry[key] = issue.__getattr__(key)
 
+                    try:
+                        if 'due_date' in dir(issue) and issue.due_date is not None:
+                            dd = issue.due_date
+                            entry['due_date'] = str(dd)
+                    except redmine_exceptions.ResourceAttrError:
+                        pass
+
                     if 'parent' in dir(issue) and issue.parent is not None:
                         entry['parent_local_id'] = issue.parent.id
 
