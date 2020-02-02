@@ -188,6 +188,9 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     if 'parent' in dir(issue) and issue.parent is not None:
                         entry['parent_local_id'] = issue.parent.id
 
+                    if 'project' in dir(issue) and issue.project is not None:
+                        entry['project_local_id'] = issue.project.id
+
                     issues.append(entry)
             result['issues'] = issues
 
