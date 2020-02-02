@@ -149,6 +149,16 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                 if 'parent' in dict(rm_issue):
                     issue_user[rm_issue.parent.id] = None
 
+                if 'project' in dir(rm_issue):
+                    # add to projects if not already loaded
+                    pr_id = rm_issue.project.id
+                    if pr_id not in projects:
+                        projects[pr_id] = redmine.project.get(pr_id)
+
+                    # if project is closed -> remove issue
+                    if projects[pr_id].status == 5:
+                        issue_user[rm_issue.id] = None
+
             # pivot-date
             pd = datetime.today().date()
 
@@ -168,6 +178,33 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                         issue_user[issue.id] = None
                 except redmine_exceptions.ResourceAttrError:
                     pass
+
+            # Collect the result projects
+            res_projects = dict()
+            for project in projects.values():
+                if project is not None:
+                    # ignore closed projects
+                    if project.status == 5:
+                        continue
+
+                    entry = dict()
+
+                    # render the project's URI (with normalization)
+                    uri_s = "{0}/projects/{1}".format(redmineurl, project.identifier)
+                    entry['uri'] = urlunparse(urlparse(uri_s))
+
+                    entry['local_id'] = project.id
+
+                    for key in ['identifier',
+                                'name',
+                                'status',
+                                'description']:
+                        if key in dir(project):
+                            entry[key] = project.__getattr__(key)
+
+                    res_projects[project.id] = entry
+
+            result['projects'] = res_projects
 
             # Collect the result issues
             for issue in issue_user.values():
