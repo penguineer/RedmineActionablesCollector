@@ -108,7 +108,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             # Map of all issues
             issue_all = dict()
             # Set of user issues
-            issue_user = dict()
+            issues_actionable = dict()
             # Map of blocked issues
             # Contains a list of blocking issues
             issue_rel_blockedby = dict()
@@ -124,10 +124,10 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                 issue_all[rm_issue.id] = rm_issue
 
             # filter IDs of those issues assigned to the current user
-            issue_user = set(map(lambda i: i.id,
-                                 filter(
-                                     lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id == rm_user.id),
-                                     issue_all.values())))
+            issues_actionable = set(map(lambda i: i.id,
+                                        filter(
+                                            lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id == rm_user.id),
+                                            issue_all.values())))
 
             # reiterate issues
             # - mark blocked by other issues
@@ -153,20 +153,20 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     if rm_rel.relation_type == 'precedes':
                         if rm_rel.issue_id in issue_all.keys():
                             try:
-                                issue_user.remove(rm_rel.issue_to_id)
+                                issues_actionable.remove(rm_rel.issue_to_id)
                             except KeyError:
                                 pass
 
                     if rm_rel.relation_type == 'follows':
                         if rm_rel.issue_to_id in issue_all.keys():
                             try:
-                                issue_user.remove(rm_rel.issue_id)
+                                issues_actionable.remove(rm_rel.issue_id)
                             except KeyError:
                                 pass
 
                 if 'parent' in dict(rm_issue):
                     try:
-                        issue_user.remove(rm_issue.parent.id)
+                        issues_actionable.remove(rm_issue.parent.id)
                     except KeyError:
                         pass
 
@@ -179,7 +179,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     # if project is closed -> remove issue
                     if projects[pr_id].status == 5:
                         try:
-                            issue_user.remove(rm_issue.id)
+                            issues_actionable.remove(rm_issue.id)
                         except KeyError:
                             pass
 
@@ -187,7 +187,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             pd = datetime.today().date()
 
             # remove user issues with start date > today, if they have any
-            for issue_id in issue_user:
+            for issue_id in issues_actionable:
                 issue = issue_all[issue_id]
                 if issue is None:
                     continue
@@ -200,7 +200,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     sd = issue.start_date  # type: datetime.date
 
                     if sd > pd:
-                        issue_user.remove(issue_id)
+                        issues_actionable.remove(issue_id)
                 except redmine_exceptions.ResourceAttrError:
                     pass
                 except KeyError:
@@ -234,7 +234,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             result['projects'] = res_projects
 
             # Collect the result issues
-            for issue_id in issue_user:
+            for issue_id in issues_actionable:
                 issue = issue_all[issue_id]
                 if issue is not None:
                     entry = dict()
@@ -271,7 +271,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             # Add list of blocked issues
             result['blocked'] = list(filter(
-                lambda i: i in issue_user, issue_rel_blockedby.keys()
+                lambda i: i in issues_actionable, issue_rel_blockedby.keys()
             ))
 
             self.add_header("Content-Type", "application/json")
