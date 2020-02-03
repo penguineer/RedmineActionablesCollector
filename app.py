@@ -253,7 +253,9 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             result['issues'] = issues
 
             # Add list of blocked issues
-            result['blocked'] = list(issue_rel_blockedby.keys())
+            result['blocked'] = list(filter(
+                lambda i: i in issue_user and issue_user[i] is not None, issue_rel_blockedby.keys()
+            ))
 
             self.add_header("Content-Type", "application/json")
             self.write(json.dumps(result, indent=4))
