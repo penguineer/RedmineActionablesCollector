@@ -186,6 +186,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             pd = datetime.today().date()
 
             # remove user issues with start date > today, if they have any
+            issues_in_future = set()
             for issue_id in issues_actionable:
                 issue = issue_all[issue_id]
                 if issue is None:
@@ -199,11 +200,11 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     sd = issue.start_date  # type: datetime.date
 
                     if sd > pd:
-                        issues_actionable.remove(issue_id)
+                        issues_in_future.add(issue_id)
                 except redmine_exceptions.ResourceAttrError:
                     pass
-                except KeyError:
-                    pass
+            # remove issues that are yet to start
+            issues_actionable = issues_actionable - issues_in_future
 
             # Collect the result projects
             res_projects = dict()
