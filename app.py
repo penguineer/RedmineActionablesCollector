@@ -223,7 +223,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     entry = dict()
 
                     # render the issue's URI (with normalization)
-                    uri_s = "{0}issues/{1}".format(redmineurl, issue.id)
+                    uri_s = "{0}/issues/{1}".format(redmineurl, issue.id)
                     entry['uri'] = urlunparse(urlparse(uri_s))
 
                     entry['local_id'] = issue.id
