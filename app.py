@@ -207,7 +207,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             # Collect the result projects
             res_projects = dict()
-            for project in projects.values():
+            for project_id in sorted(projects.keys()):
+                project = projects[project_id]
                 if project is not None:
                     # ignore closed projects
                     if project.status == 5:
@@ -233,16 +234,16 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             result['projects'] = res_projects
 
             # Add list of actionable issues
-            result['actionable'] = list(issues_actionable - issue_rel_blockedby.keys())
+            result['actionable'] = list(sorted(issues_actionable - issue_rel_blockedby.keys()))
 
             # Add list of blocked issues
-            result['blocked'] = list(filter(
+            result['blocked'] = list(sorted(filter(
                 lambda i: i in issues_actionable, issue_rel_blockedby.keys()
-            ))
+            )))
 
             # Collect the result issues
             issues = dict()
-            for issue_id in issues_actionable:
+            for issue_id in sorted(issues_actionable):
                 issue = issue_all[issue_id]
                 if issue is not None:
                     entry = dict()
