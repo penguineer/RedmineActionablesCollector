@@ -233,6 +233,14 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             result['projects'] = res_projects
 
+            # Add list of actionable issues
+            result['actionable'] = list(issues_actionable - issue_rel_blockedby.keys())
+
+            # Add list of blocked issues
+            result['blocked'] = list(filter(
+                lambda i: i in issues_actionable, issue_rel_blockedby.keys()
+            ))
+
             # Collect the result issues
             for issue_id in issues_actionable:
                 issue = issue_all[issue_id]
@@ -268,11 +276,6 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
                     issues.append(entry)
             result['issues'] = issues
-
-            # Add list of blocked issues
-            result['blocked'] = list(filter(
-                lambda i: i in issues_actionable, issue_rel_blockedby.keys()
-            ))
 
             self.add_header("Content-Type", "application/json")
             self.write(json.dumps(result, indent=4))
