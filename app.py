@@ -14,7 +14,7 @@ from datetime import datetime
 import isodate
 
 import json
-from urllib.parse import urlparse, urlunparse
+from url_normalize import url_normalize
 
 from redminelib import Redmine, exceptions as redmine_exceptions
 
@@ -202,7 +202,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
                     # render the project's URI (with normalization)
                     uri_s = "{0}/projects/{1}".format(redmineurl, project.identifier)
-                    entry['uri'] = urlunparse(urlparse(uri_s))
+                    entry['uri'] = url_normalize(uri_s)
 
                     entry['local_id'] = project.id
 
@@ -223,8 +223,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     entry = dict()
 
                     # render the issue's URI (with normalization)
-                    uri_s = "{0}issues/{1}".format(redmineurl, issue.id)
-                    entry['uri'] = urlunparse(urlparse(uri_s))
+                    uri_s = "{0}/issues/{1}".format(redmineurl, issue.id)
+                    entry['uri'] = url_normalize(uri_s)
 
                     entry['local_id'] = issue.id
                     for key in ['subject',
