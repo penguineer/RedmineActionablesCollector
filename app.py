@@ -107,7 +107,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             # Map of all issues
             issue_all = dict()
-            # Map of user issues
+            # Set of user issues
             issue_user = dict()
             # Map of blocked issues
             # Contains a list of blocking issues
@@ -119,16 +119,21 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                 include=['relations']
             )
 
-            # put into the maps
+            # put into the issue map
             for rm_issue in rm_issues:
                 issue_all[rm_issue.id] = rm_issue
-                if ('assigned_to' in dir(rm_issue)) and (rm_issue.assigned_to.id == rm_user.id):
-                    issue_user[rm_issue.id] = rm_issue
+
+            # filter IDs of those issues assigned to the current user
+            issue_user = set(map(lambda i: i.id,
+                                 filter(
+                                     lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id == rm_user.id),
+                                     issue_all.values())))
 
             # reiterate issues
-            # - remove blocked by other issues
+            # - mark blocked by other issues
             # - removes following other issues
             # - remove parents, because they have open issues
+            # - remove closed projects
 
             for rm_issue in issue_all.values():
                 # find blocked issues and remove them from the user list
@@ -139,26 +144,31 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                                 issue_rel_blockedby[rm_rel.issue_to_id] = list()
                             issue_rel_blockedby[rm_rel.issue_to_id].append(rm_issue.id)
 
-                            # issue_user[rm_rel.issue_to_id] = None
-
                     if rm_rel.relation_type == 'blocked_by':
                         if rm_rel.issue_to_id in issue_all.keys():
                             if rm_issue.id not in issue_rel_blockedby:
                                 issue_rel_blockedby[rm_issue.id] = list()
                             issue_rel_blockedby[rm_issue.id].append(rm_rel.issue_to_id)
 
-                            # issue_user[rm_rel.issue_id] = None
-
                     if rm_rel.relation_type == 'precedes':
                         if rm_rel.issue_id in issue_all.keys():
-                            issue_user[rm_rel.issue_to_id] = None
+                            try:
+                                issue_user.remove(rm_rel.issue_to_id)
+                            except KeyError:
+                                pass
 
                     if rm_rel.relation_type == 'follows':
                         if rm_rel.issue_to_id in issue_all.keys():
-                            issue_user[rm_rel.issue_id] = None
+                            try:
+                                issue_user.remove(rm_rel.issue_id)
+                            except KeyError:
+                                pass
 
                 if 'parent' in dict(rm_issue):
-                    issue_user[rm_issue.parent.id] = None
+                    try:
+                        issue_user.remove(rm_issue.parent.id)
+                    except KeyError:
+                        pass
 
                 if 'project' in dir(rm_issue):
                     # add to projects if not already loaded
@@ -168,13 +178,17 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
                     # if project is closed -> remove issue
                     if projects[pr_id].status == 5:
-                        issue_user[rm_issue.id] = None
+                        try:
+                            issue_user.remove(rm_issue.id)
+                        except KeyError:
+                            pass
 
             # pivot-date
             pd = datetime.today().date()
 
             # remove user issues with start date > today, if they have any
-            for issue in issue_user.values():
+            for issue_id in issue_user:
+                issue = issue_all[issue_id]
                 if issue is None:
                     continue
                 if 'start_date' not in dir(issue):
@@ -186,8 +200,10 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     sd = issue.start_date  # type: datetime.date
 
                     if sd > pd:
-                        issue_user[issue.id] = None
+                        issue_user.remove(issue_id)
                 except redmine_exceptions.ResourceAttrError:
+                    pass
+                except KeyError:
                     pass
 
             # Collect the result projects
@@ -218,7 +234,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             result['projects'] = res_projects
 
             # Collect the result issues
-            for issue in issue_user.values():
+            for issue_id in issue_user:
+                issue = issue_all[issue_id]
                 if issue is not None:
                     entry = dict()
 
@@ -254,7 +271,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             # Add list of blocked issues
             result['blocked'] = list(filter(
-                lambda i: i in issue_user and issue_user[i] is not None, issue_rel_blockedby.keys()
+                lambda i: i in issue_user, issue_rel_blockedby.keys()
             ))
 
             self.add_header("Content-Type", "application/json")
