@@ -91,7 +91,6 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                 raise tornado.web.HTTPError(status_code=400, reason="API key URL must not be empty")
 
             result = dict()
-            issues = list()
             projects = dict()
 
             redmine = Redmine(redmineurl, key=apikey)
@@ -242,6 +241,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             ))
 
             # Collect the result issues
+            issues = dict()
             for issue_id in issues_actionable:
                 issue = issue_all[issue_id]
                 if issue is not None:
@@ -274,7 +274,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     if issue.id in issue_rel_blockedby:
                         entry['blocked_by'] = issue_rel_blockedby[issue.id]
 
-                    issues.append(entry)
+                    issues[issue.id] = entry
             result['issues'] = issues
 
             self.add_header("Content-Type", "application/json")
