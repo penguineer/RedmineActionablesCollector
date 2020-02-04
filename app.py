@@ -262,17 +262,23 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     uri_s = "{0}/issues/{1}".format(redmineurl, issue.id)
                     entry['uri'] = url_normalize(uri_s)
 
-                    entry['local_id'] = issue.id
-                    for key in ['subject',
-                                'description',
-                                'done_ratio']:
-                        if key in dir(issue):
-                            entry[key] = issue.__getattr__(key)
+                    for s_key, t_key in {
+                        ('id', 'local_id'),
+                        ('subject', 'subject'),
+                        ('description', 'description'),
+                        ('done_ratio', 'percent_done')
+                    }:
+                        try:
+                            if s_key in dir(issue) and issue[s_key] is not None:
+                                entry[t_key] = issue.__getattr__(s_key)
+                        except redmine_exceptions.ResourceAttrError:
+                            pass
 
+                    # due-date must be converted to string
                     try:
                         if 'due_date' in dir(issue) and issue.due_date is not None:
                             dd = issue.due_date
-                            entry['due_date'] = str(dd)
+                            entry['deadline'] = str(dd)
                     except redmine_exceptions.ResourceAttrError:
                         pass
 
