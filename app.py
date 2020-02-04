@@ -95,10 +95,19 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             redmine = Redmine(redmineurl, key=apikey)
 
-            result['redmine'] = redmineurl
-
+            # Collect tracker information
+            tracker = dict()
+            tracker['type'] = "redmine"
+            tracker['uri'] = url_normalize(redmineurl)
             rm_user = redmine.user.get('current')
-            result['user_id'] = rm_user.id
+            tracker['user_local_id'] = rm_user.id
+            user_name = list()
+            for attr in ['firstname', 'lastname']:
+                if attr in dir(rm_user):
+                    user_name.append(rm_user.__getattr__(attr).strip())
+            tracker['user_name'] = ' '.join(user_name)
+
+            result['tracker'] = tracker
 
             # We cannot filter issues that are blocked, so we have to get all open issues to see
             # a) if somebody is blocking
