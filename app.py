@@ -64,6 +64,10 @@ class HealthHandler(tornado.web.RequestHandler, ABC):
 
 class Oas3Handler(tornado.web.RequestHandler, ABC):
     def get(self):
+        self.set_header("Content-Type", "text/plain")
+        # This is the proposed content type,
+        # but browsers like Firefox try to download instead of display the content
+        # self.set_header("Content-Type", "text/vnd.yml")
         with open('OAS3.yml', 'r') as f:
             oas3 = f.read()
             self.write(oas3)
