@@ -135,10 +135,22 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             for rm_issue in rm_issues:
                 issue_all[rm_issue.id] = rm_issue
 
+            # assign IDs that are relevant to us
+            # (our user ID and group IDs)
+            assign_ids = list()
+            assign_ids.append(rm_user.id)
+
+            rm_groups = dict()
+            # find our groups
+            if 'groups' in dir(rm_user):
+                for group in rm_user.groups:
+                    assign_ids.append(group.id)
+                    rm_groups[group.id] = group
+
             # filter IDs of those issues assigned to the current user
             issues_actionable = set(map(lambda i: i.id,
                                         filter(
-                                            lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id == rm_user.id),
+                                            lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id in assign_ids),
                                             issue_all.values())))
 
             # reiterate issues
