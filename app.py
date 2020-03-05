@@ -135,10 +135,22 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             for rm_issue in rm_issues:
                 issue_all[rm_issue.id] = rm_issue
 
+            # assign IDs that are relevant to us
+            # (our user ID and group IDs)
+            assign_ids = list()
+            assign_ids.append(rm_user.id)
+
+            rm_groups = dict()
+            # find our groups
+            if 'groups' in dir(rm_user):
+                for group in rm_user.groups:
+                    assign_ids.append(group.id)
+                    rm_groups[group.id] = group
+
             # filter IDs of those issues assigned to the current user
             issues_actionable = set(map(lambda i: i.id,
                                         filter(
-                                            lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id == rm_user.id),
+                                            lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id in assign_ids),
                                             issue_all.values())))
 
             # reiterate issues
@@ -221,6 +233,20 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             # remove issues that are yet to start
             issues_actionable = issues_actionable - issues_in_future
 
+            # Collect the result groups
+            res_groups = dict()
+
+            for group_id in sorted(rm_groups.keys()):
+                group = rm_groups[group_id]
+
+                entry = dict()
+                entry['group_local_id'] = group_id
+                entry['name'] = group.name
+
+                res_groups[group_id] = entry
+
+            result['groups'] = res_groups
+
             # Collect the result projects
             res_projects = dict()
             for project_id in sorted(projects.keys()):
@@ -279,6 +305,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                                 entry[t_key] = issue.__getattr__(s_key)
                         except redmine_exceptions.ResourceAttrError:
                             pass
+
+                    entry['assigned_to'] = issue.assigned_to.id
 
                     # due-date must be converted to string
                     try:
