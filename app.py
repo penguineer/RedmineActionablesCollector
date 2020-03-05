@@ -292,6 +292,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                         except redmine_exceptions.ResourceAttrError:
                             pass
 
+                    entry['assigned_to'] = issue.assigned_to.id
+
                     # due-date must be converted to string
                     try:
                         if 'due_date' in dir(issue) and issue.due_date is not None:
