@@ -154,13 +154,15 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                         if rm_rel.issue_id in issue_all.keys():
                             if rm_rel.issue_to_id not in issue_rel_blockedby:
                                 issue_rel_blockedby[rm_rel.issue_to_id] = list()
-                            issue_rel_blockedby[rm_rel.issue_to_id].append(rm_issue.id)
+                            if rm_rel.issue_to_id not in issue_rel_blockedby[rm_rel.issue_to_id]:
+                                issue_rel_blockedby[rm_rel.issue_to_id].append(rm_rel.issue_to_id)
 
                     if rm_rel.relation_type == 'blocked_by':
                         if rm_rel.issue_to_id in issue_all.keys():
                             if rm_issue.id not in issue_rel_blockedby:
                                 issue_rel_blockedby[rm_issue.id] = list()
-                            issue_rel_blockedby[rm_issue.id].append(rm_rel.issue_to_id)
+                            if rm_rel.issue_to_id not in issue_rel_blockedby[rm_rel.issue_id]:
+                                issue_rel_blockedby[rm_rel.issue_id].append(rm_rel.issue_to_id)
 
                     if rm_rel.relation_type == 'precedes':
                         if rm_rel.issue_id in issue_all.keys():
