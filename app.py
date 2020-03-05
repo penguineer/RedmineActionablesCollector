@@ -298,7 +298,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     issues[issue.id] = entry
             result['issues'] = issues
 
-            self.add_header("Content-Type", "application/json")
+            self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result, indent=4))
             self.set_status(200)
             self.finish()
