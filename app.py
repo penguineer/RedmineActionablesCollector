@@ -233,6 +233,20 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             # remove issues that are yet to start
             issues_actionable = issues_actionable - issues_in_future
 
+            # Collect the result groups
+            res_groups = dict()
+
+            for group_id in sorted(rm_groups.keys()):
+                group = rm_groups[group_id]
+
+                entry = dict()
+                entry['group_local_id'] = group_id
+                entry['name'] = group.name
+
+                res_groups[group_id] = entry
+
+            result['groups'] = res_groups
+
             # Collect the result projects
             res_projects = dict()
             for project_id in sorted(projects.keys()):
