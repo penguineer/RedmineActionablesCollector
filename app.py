@@ -150,7 +150,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             # filter IDs of those issues assigned to the current user
             issues_actionable = set(map(lambda i: i.id,
                                         filter(
-                                            lambda i: 'assigned_to' in dir(i) and (i.assigned_to.id in assign_ids),
+                                            lambda i: ('assigned_to' in dir(i) and (i.assigned_to.id in assign_ids))
+                                            or ('assigned_to' not in dir(i)),
                                             issue_all.values())))
 
             # reiterate issues
@@ -306,7 +307,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                         except redmine_exceptions.ResourceAttrError:
                             pass
 
-                    entry['assigned_to'] = issue.assigned_to.id
+                    if 'assigned_to' in dir(issue):
+                        entry['assigned_to'] = issue.assigned_to.id
 
                     # due-date must be converted to string
                     try:
