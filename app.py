@@ -90,6 +90,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
             redmineurl = self.get_argument('url', None)
             if redmineurl is None or redmineurl == '':
                 raise tornado.web.HTTPError(status_code=400, reason="Redmine URL must not be empty")
+            if not redmineurl.lower().startswith("https"):
+                raise tornado.web.HTTPError(status_code=400, reason="Redmine URL must start with 'HTTPS'")
             apikey = self.get_argument('apikey', None)
             if apikey is None or apikey == '':
                 raise tornado.web.HTTPError(status_code=400, reason="API key URL must not be empty")
