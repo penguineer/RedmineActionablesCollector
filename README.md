@@ -1,5 +1,8 @@
 # Redmine Actionables
 
+![Docker Image](https://github.com/penguineer/RedmineActionablesCollector/actions/workflows/docker-image.yml/badge.svg)
+
+
 An item is actionable when its action can be executed without further
 prerequesites. A Redmine ticket is classified as actionable, when the
 following apply:
