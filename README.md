@@ -1,5 +1,6 @@
 # Redmine Actionables
 
+![PyTest](https://github.com/penguineer/RedmineActionablesCollector/actions/workflows/pytest.yml/badge.svg)
 ![Docker Image](https://github.com/penguineer/RedmineActionablesCollector/actions/workflows/docker-image.yml/badge.svg)
 
 > Collect issues from Redmine that can be acted upon
