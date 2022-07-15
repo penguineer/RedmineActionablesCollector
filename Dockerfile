@@ -5,17 +5,18 @@ ADD . /git/
 RUN git describe --always --dirty > /git-version.txt
 
 
-FROM python:3.7
+FROM python:3.9
 
 EXPOSE 8080
+HEALTHCHECK --interval=10s CMD curl --fail http://localhost:8080/v0/health || exit 1
 
-ADD requirements.txt /
+COPY src/OAS3.yml /
+
+COPY requirements.txt /
 RUN pip install -r requirements.txt
 
-ADD OAS3.yml /
-
-ADD app.py /
+COPY src/*.py /
 
 COPY --from=install /git-version.txt /
 
-CMD ["python", "./app.py"]
+CMD ["python", "-u", "./app.py"]
