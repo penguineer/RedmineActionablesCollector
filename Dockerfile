@@ -9,12 +9,12 @@ FROM python:3.7
 
 EXPOSE 8080
 
-ADD requirements.txt /
+COPY src/OAS3.yml /
+
+COPY requirements.txt /
 RUN pip install -r requirements.txt
 
-ADD OAS3.yml /
-
-ADD app.py /
+COPY src/*.py /
 
 COPY --from=install /git-version.txt /
 
