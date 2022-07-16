@@ -98,6 +98,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             result = dict()
             projects = dict()
+            notes = list()
 
             redmine = Redmine(redmineurl, key=apikey)
 
@@ -331,6 +332,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
                     issues[issue.id] = entry
             result['issues'] = issues
+
+            result['notes'] = notes
 
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result, indent=4))
