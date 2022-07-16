@@ -150,6 +150,12 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                     assign_ids.append(group.id)
                     rm_groups[group.id] = group
 
+            # if groups are empty we might not have the rights to retrieve them, cf.
+            # https://github.com/penguineer/RedmineActionablesCollector/issues/1
+            if not rm_groups:
+                notes.append("Redmine groups came back empty. "
+                             "Either there are no groups or you do not have sufficient rights to retrieve groups!")
+
             # filter IDs of those issues assigned to the current user
             issues_actionable = set(map(lambda i: i.id,
                                         filter(
