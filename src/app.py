@@ -98,6 +98,7 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
             result = dict()
             projects = dict()
+            notes = list()
 
             redmine = Redmine(redmineurl, key=apikey)
 
@@ -148,6 +149,12 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
                 for group in rm_user.groups:
                     assign_ids.append(group.id)
                     rm_groups[group.id] = group
+
+            # if groups are empty we might not have the rights to retrieve them, cf.
+            # https://github.com/penguineer/RedmineActionablesCollector/issues/1
+            if not rm_groups:
+                notes.append("Redmine groups came back empty. "
+                             "Either there are no groups or you do not have sufficient rights to retrieve groups!")
 
             # filter IDs of those issues assigned to the current user
             issues_actionable = set(map(lambda i: i.id,
@@ -331,6 +338,8 @@ class RedmineActionablesHandler(tornado.web.RequestHandler, ABC):
 
                     issues[issue.id] = entry
             result['issues'] = issues
+
+            result['notes'] = notes
 
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result, indent=4))
