@@ -1,6 +1,6 @@
 pytest==7.1.2
 pytest-asyncio==0.19.0
-tornado==6.4.1
+tornado==6.4.2
 isodate==0.6.0
 python-redmine==2.2.1
 url-normalize==1.4.1
