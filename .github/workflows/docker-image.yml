@@ -64,8 +64,7 @@ jobs:
 
       - name: Generate artifact attestation
         # The digest is only available after a push
-        #if: steps.push.outputs.digest != ''
-        if: false
+        if: steps.push.outputs.digest != ''
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
