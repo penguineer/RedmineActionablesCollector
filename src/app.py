@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from abc import ABC
+from typing import Any
 
 import tornado.ioloop
 import tornado.web
@@ -20,6 +21,20 @@ from redminelib import Redmine, exceptions as redmine_exceptions
 
 
 startup_timestamp = datetime.now()
+
+class BaseCORSHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with, content-type")
+        self.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+    def options(self, *args, **kwargs):
+        self.set_status(204)
+        self.finish()
+
+    def write_error(self, status_code: int, **kwargs: Any) -> None:
+        self.set_default_headers()
+        super().write_error(status_code, **kwargs)
 
 
 class HealthHandler(tornado.web.RequestHandler, ABC):
