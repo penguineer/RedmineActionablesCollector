@@ -4,11 +4,17 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
