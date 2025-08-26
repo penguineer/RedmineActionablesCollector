@@ -11,7 +11,7 @@ on:
       - 'main'
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: docker.io
   IMAGE_NAME: mrtux/redmine-actionables-collector
 
 jobs:
