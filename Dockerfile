@@ -13,7 +13,7 @@ HEALTHCHECK --interval=10s CMD curl --fail http://localhost:8080/v0/health || ex
 COPY src/OAS3.yml /
 
 COPY requirements.txt /
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --root-user-action ignore
 
 COPY src/*.py /
 
