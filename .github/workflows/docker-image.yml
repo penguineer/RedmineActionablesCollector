@@ -13,6 +13,7 @@ on:
 env:
   REGISTRY: docker.io
   IMAGE_NAME: mrtux/redmine-actionables-collector
+  TARGET_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
 
 jobs:
   docker:
@@ -57,7 +58,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          # Use all platforms on push and tags, otherwise limit to linux/amd64 for faster CI
+          platforms: ${{ github.event_name != 'pull_request' && env.TARGET_PLATFORMS || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
