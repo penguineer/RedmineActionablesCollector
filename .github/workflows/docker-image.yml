@@ -57,7 +57,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          # Use all platforms on push and tags, otherwise limit to linux/amd64 for faster CI
+          platforms: ${{ github.event_name != 'pull_request' && 'linux/amd64,linux/arm64,linux/arm/v7' || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
