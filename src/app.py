@@ -233,15 +233,14 @@ class RedmineActionablesHandler(BaseCORSHandler, ABC):
                 issue = issue_all[issue_id]
                 if issue is None:
                     continue
-                if 'start_date' not in dir(issue):
-                    continue
 
-                # sometimes 'start_date' is in dir, but not accessible
-                # we ignore those
+                # Attempt to access start_date;
+                # it may exist but be inaccessible or None, which we handle gracefully
                 try:
                     sd = issue.start_date  # type: datetime.date
 
-                    if sd > pd:
+                    # start_date can be None as well (meaning "asap")
+                    if sd is not None and sd > pd:
                         issues_in_future.add(issue_id)
                 except redmine_exceptions.ResourceAttrError:
                     pass
