@@ -5,7 +5,7 @@ ADD . /git/
 RUN git describe --always --dirty > /git-version.txt
 
 
-FROM python:3.12
+FROM python:3.13
 
 EXPOSE 8080
 HEALTHCHECK --interval=10s CMD curl --fail http://localhost:8080/v0/health || exit 1
