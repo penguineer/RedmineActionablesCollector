@@ -1,8 +1,6 @@
 # Do not forget to create the .env file (see template)
 # before using this container!
 
-version: '2'
-
 services:
     collector:
         restart: always
@@ -11,6 +9,3 @@ services:
             PORT: 8080
         ports:
             - $PORT:8080
-
-volumes:
-    db:
