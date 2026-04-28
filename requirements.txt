@@ -4,7 +4,7 @@ tornado==6.5.5
 isodate==0.7.2
 python-redmine==2.5.0
 requests==2.33.1
-url-normalize==2.2.1
+url-normalize==3.0.0
 
 # Needed for redmine lib, but no longer included by default in python:3.12
 setuptools==82.0.1
